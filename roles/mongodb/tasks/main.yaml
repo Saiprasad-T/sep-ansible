@@ -1,0 +1,17 @@
+- name: installing mongosb server
+  ansible.builtin.dnf:
+    name: mongodb-org
+    state: present
+
+- name: starting and enabling mongod service
+  ansible.builtin.service:
+    name: mongod
+    state: started
+    enabled: true
+
+- name: configuring mongod.conf
+  ansible.builtin.replace:
+    path: /etc/mongod.conf
+    regexp: '127.0.0.1 '
+    replace: '0.0.0.0'
+  notify: restarting mongod
