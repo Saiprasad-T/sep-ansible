@@ -29,6 +29,7 @@
   ansible.builtin.service:
     name: mongod
     state: stopped
+    enabled: false
   when: state == "absent"
 
 - name: uninstalling mongod
