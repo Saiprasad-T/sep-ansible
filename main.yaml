@@ -1,0 +1,4 @@
+-  name: configuring {{ component }}
+   become: yes
+   roles:
+    - {{ component}}
