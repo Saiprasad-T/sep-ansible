@@ -2,37 +2,37 @@
   ansible.builtin.copy:
     src: mongo.repo
     dest: /etc/yum.repos.d/mongo.repo
-  when: action == "present"
+  when: state == "present"
 
 - name: installing mongodb server
   ansible.builtin.dnf:
     name: mongodb-org
     state: present
-  when: action == "present"
+  when: state == "present"
 
 - name: starting and enabling mongod service
   ansible.builtin.service:
     name: mongod
     state: started
     enabled: true
-  when: action == "present"
+  when: state == "present"
 
 - name: configuring mongod.conf
   ansible.builtin.replace:
     path: /etc/mongod.conf
     regexp: '127.0.0.1 '
     replace: '0.0.0.0'
-  when: action == "present"
+  when: state == "present"
   notify: restarting mongod
 
 - name: stopping the mongod
   ansible.builtin.service:
     name: mongod
     state: stopped
-  when: action == "absent"
+  when: state == "absent"
 
 - name: uninstalling mongod
   ansible.builtin.dnf:
     name: mongodb-org
     state: absent
-  when: action == "absent"
+  when: state == "absent"
