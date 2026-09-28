@@ -25,6 +25,12 @@
   when: action == "present"
   notify: restarting mongod
 
+- name: stopping the mongod
+  ansible.builtin.service:
+    name: mongod
+    state: stopped
+  when: action == "absent"
+
 - name: uninstalling mongod
   ansible.builtin.dnf:
     name: mongodb-org
