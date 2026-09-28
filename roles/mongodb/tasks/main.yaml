@@ -1,3 +1,8 @@
+- name: Create a symbolic link
+  ansible.builtin.copy:
+    src: mongo.repo
+    dest: /etc/yum.repos.d/mongo.repo
+
 - name: installing mongosb server
   ansible.builtin.dnf:
     name: mongodb-org
