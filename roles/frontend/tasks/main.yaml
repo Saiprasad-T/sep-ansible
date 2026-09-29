@@ -13,14 +13,14 @@
 - name: Check nginx 1.24 module
   ansible.builtin.shell:
     cmd: dnf module list nginx | grep '1.24.*\[e\]'
-  register: nginx1.24_module
+  register: nginx24_module
   changed_when: false
   failed_when: false
 
 - name: Enable nginx 1.24
   ansible.builtin.command:
     cmd: dnf module enable nginx:1.24 -y
-  when: nginx1.24_module.rc == 1
+  when: nginx24_module.rc == 1
 
 - name: installing nginx
   ansible.builtin.dnf:
