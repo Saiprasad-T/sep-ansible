@@ -1,0 +1,97 @@
+- name: Check if NodeJS module is enabled
+  ansible.builtin.shell:
+    cmd: dnf module list nodejs | grep  '20.*\[e\]'
+  register: nodejs_module
+  changed_when: false
+  failed_when: false
+
+- name: Disable current NodeJS module
+  ansible.builtin.command:
+    cmd: dnf module disable nodejs -y
+  when: nodejs_module.rc == 1
+
+- name: Check NodeJS 20 module
+  ansible.builtin.shell:
+    cmd: dnf module list nodejs | grep '20.*\[e\]'
+  register: nodejs20_module
+  changed_when: false
+  failed_when: false
+
+- name: Enable NodeJS 20
+  ansible.builtin.command:
+    cmd: dnf module enable nodejs:20 -y
+  when: nodejs20_module.rc == 1
+
+- name: installing nodejs
+  ansible.buitlin.dnf:
+    name: nodejs
+    state: present
+
+- name: Create a system user safely
+  ansible.builtin.user:
+    name: roboshop
+    comment: "Roboshop system user"
+    system: yes            
+    shell: /sbin/nologin
+    home: /app          
+    state: present
+
+- name: Create a directory
+  ansible.builtin.file:
+    path: /app
+    state: directory
+
+- name: Download catalogue zip
+  ansible.builtin.get_url:
+    url: https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip
+    dest: /tmp/catalogue.zip
+
+- name: Extract catalogue zip
+  ansible.builtin.unarchive:
+    src: /tmp/catalogue.zip
+    dest: /app
+    remote_src: true
+
+- name: Install node packages based on package.json
+  community.general.npm:
+    path: /app
+    state: present
+
+- name: configuring catalogue.service file
+  ansible.builtin.template:
+    src: catalogue.service.j2
+    dest: /etc/systemd/system/catalogue.service
+  notify: daemon-reload
+
+- name: starting & enabling catalogue
+  ansible.builtin.service:
+    name: catalogue
+    state: started
+    enabled: true
+
+- name: copying mongo.repo to yum directory
+  ansible.builtin.copy:
+    src: mongo.repo
+    dest: /etc/yum.repos.d/mongo.repo
+
+- name: installing mongosh
+  ansible.builtin.dnf:
+    name: mongodb-mongosh
+    state: present
+
+- name: Validate catalogue data
+  ansible.builtin.command:
+    cmd: mongosh --host "{{ mongodb }}" --quiet --eval "db.getSiblingDB('catalogue').products.countDocuments()"
+  register: catalogue_count
+  changed_when: false
+
+- name: Load catalogue data if not already loaded
+  ansible.builtin.shell:
+    cmd: mongosh --host "{{ mongodb }}" </app/db/master-data.js
+  when: catalogue_count.stdout | int == 0
+
+- name: data loaded
+  ansible.builtin.debug:
+    msg: data loaded sucessfully.
+  when: catalogue_count.stdout | int > 0
+
