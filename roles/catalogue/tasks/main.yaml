@@ -23,7 +23,7 @@
   when: nodejs20_module.rc == 1
 
 - name: installing nodejs
-  ansible.buitlin.dnf:
+  ansible.builtin.dnf:
     name: nodejs
     state: present
 
