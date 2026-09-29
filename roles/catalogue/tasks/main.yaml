@@ -81,7 +81,7 @@
 
 - name: Validate catalogue data
   ansible.builtin.command:
-    cmd: mongosh --host "{{ mongodb }}" --quiet --eval "db.getSiblingDB('catalogue').products.countDocuments()"
+    cmd: mongosh --host mongodb.devopswiththota.online --quiet --eval "db.getSiblingDB('catalogue').products.countDocuments()"
   register: catalogue_count
   changed_when: false
 
